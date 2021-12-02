@@ -22,7 +22,6 @@ export type PostProps = {
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     const session = await getSession({ req });
-    console.log(session)
 
     if (!session) {
         res.statusCode = 403;

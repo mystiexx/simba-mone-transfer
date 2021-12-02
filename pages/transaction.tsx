@@ -35,7 +35,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
             },
         },
     });
-    console.log(transaction);
     return {
         props: { transaction },
     };

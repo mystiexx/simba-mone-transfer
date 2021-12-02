@@ -2,11 +2,28 @@ import { useSession } from "next-auth/client";
 import React, { useState, useEffect } from "react";
 import Wrapper from "../component/wrapper";
 import Head from "next/head";
+import prisma from "../lib/prisma";
+import { getSession } from "next-auth/client";
+import { GetServerSideProps } from "next";
 
 const BASE_URL =
     "http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb";
 
-export default function Transfer() {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+    const session = await getSession({ req });
+
+    if (!session) {
+        res.statusCode = 403;
+        return { props: { user: [] } };
+    }
+
+    const user = await prisma.user.findMany();
+    return{
+        props: {user }
+    }
+};
+
+export default function Transfer(props) {
     const [session] = useSession();
     const [currencyOptions, setCurrencyOptions] = useState([]);
     const [fromCurrency, setFromCurrency] = useState("");
@@ -37,7 +54,7 @@ export default function Transfer() {
 
     useEffect(() => {
         if (fromCurrency !== null && toCurrency !== null) {
-            fetch(`${BASE_URL} ?base=${fromCurrency}&symbols=${toCurrency}`)
+            fetch(BASE_URL)
                 .then((res) => res.json())
                 .then((data) => setExchangeRate(data.rates[toCurrency]));
         }
@@ -61,13 +78,18 @@ export default function Transfer() {
                 <meta name="viewport" content="initial-scale=1.0, width=device-width" />
             </Head>
             <div className="bg-gray-50 block h-screen items-center justify-center -my-32 p-4 md:flex">
-                <div className="bg-white items-center max-w-screen-sm p-4 space-y-8 overflow-hidden rounded-lg shadow-lg w-full md:flex-row md:w-1/2">
+                <div className="bg-white items-center p-4 space-y-8 overflow-hidden rounded-lg shadow-lg w-96 md:flex-row md:w-1/2">
                     <div className="flex flex-col items-center">
                         <h1 className="font-medium text-green-400 text-xl">Send money</h1>
                     </div>
                     <form className="flex flex-col space-y-4">
                         <select className="w-full border border-gray-300 outline-none placeholder-gray-400 pl-3 pr-4 py-1 rounded-md transition focus:ring-2 focus:ring-green-300">
-                            <option>Name</option>
+                          {
+                              props.user.map((data) => (
+                                <option key={data.id}>{data.name}</option>
+                              ))
+                          }
+                          
                         </select>
                         <div className="flex">
                             <input
@@ -109,7 +131,7 @@ export default function Transfer() {
                             </select>
                         </div>
                         <button
-                            className="text-center bg-green-400 font-medium inline-flex items-center px-3 py-1 rounded-md shadow-md text-white transition hover:bg-green-500"
+                            className="text-center bg-green-400 font-medium  items-center px-3 py-1 rounded-md shadow-md text-white transition hover:bg-green-500"
                             type="submit"
                         >
                             Send
