@@ -8,8 +8,7 @@ import { GetServerSideProps } from "next";
 import Router from 'next/router'
 
 
-const BASE_URL =
-    "http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb";
+
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     const session = await getSession({ req });
@@ -73,14 +72,14 @@ const Transfer = (props) => {
 
     useEffect(() => {
         if (fromCurrency !== null && toCurrency !== null) {
-            fetch(BASE_URL)
+            fetch("http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb")
                 .then((res) => res.json())
                 .then((data) => setExchangeRate(data.rates[toCurrency]));
         }
     }, [fromCurrency, toCurrency]);
 
     useEffect(() => {
-        fetch(BASE_URL)
+        fetch("http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb")
             .then((res) => res.json())
             .then((data) => {
                 const firstCurrency = Object.keys(data.rates)[0];
