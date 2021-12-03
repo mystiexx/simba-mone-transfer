@@ -79,7 +79,7 @@ const Transfer = (props) => {
     }, [fromCurrency, toCurrency]);
 
     useEffect(() => {
-        fetch("httppp://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb")
+        fetch("http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb")
             .then((res) => res.json())
             .then((data) => {
                 const firstCurrency = Object.keys(data.rates)[0];
