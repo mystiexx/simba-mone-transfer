@@ -94,7 +94,7 @@ const Transfer = (props) => {
             <Head>
                 <title>Send Money</title>
                  <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
             </Head>
             <div className="bg-gray-50 block h-screen items-center justify-center -my-32 p-4 md:flex">
                 <div className="bg-white items-center p-4 space-y-8 overflow-hidden rounded-lg shadow-lg w-96 md:flex-row md:w-1/2">
