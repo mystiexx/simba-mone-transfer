@@ -28,35 +28,40 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
         return { props: { transaction: [] } };
     }
 
-    const transaction = await prisma.transaction.findMany({
+    const user = await prisma.user.findMany({
         where: {
-            user: {
-                email: session?.user?.email,
-            },
+            email: session?.user?.email,
+        },
+        include: {
+            transaction: true,
+            wallet: true,
         },
     });
     return {
-        props: { transaction },
+        props: { user },
     };
 };
 
 type Props = {
-    transaction: PostProps[];
+    user: PostProps[];
 };
 
 const Dashboard = (props) => {
     const [balance, setBalance] = useState();
+    const [transaction, setTransaction] = useState();
 
-    const sum = () => {
-        let add = props.transaction.reduce(function (prev, current) {
-            return prev + +current.amount;
-        }, 0);
-        setBalance(add);
+    const getTransaction = () => {
+        let user = props.user.map((data) => {
+            return data.transaction.reduce(function (prev, current) {
+                return prev + +current.amount;
+            }, 0);
+        });
+        setBalance(user.toString());
     };
 
     useEffect(() => {
-        sum();
-    });
+        getTransaction();
+    }, []);
     return (
         <Wrapper>
             <Head>
@@ -76,9 +81,21 @@ const Dashboard = (props) => {
                             </h1>
                         </div>
 
-                        {/* <div>
-                            <Wallet />
-                        </div> */}
+                        <div className="bg-white  shadow-md w-1/2 p-5 mt-5 overflow-hidden rounded-md ml-5">
+                            <p className="text-center text-gray-700 font-medium">Wallet</p>
+                            <div className='grid grid-cols-3 gap-4 flex item-center justify-center'>
+                                {props.user.map((data) => {
+                                    return data.wallet.map((wallet) => (
+                                        <div key={wallet.id}>
+                                            <p className='text-center mt-5 text-2xl'>
+                                                {" "}
+                                                {wallet.amount} {wallet.currency}{" "}
+                                            </p>
+                                        </div>
+                                    ));
+                                })}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="bg-white shadow-md w-full p-4 mt-5 rounded-lg">
@@ -102,22 +119,24 @@ const Dashboard = (props) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {props.transaction.map((data) => (
-                                    <tr key={data.id}>
-                                        <td className="border border-gray-100 text-center">
-                                            {data.sender}
-                                        </td>
-                                        <td className="border border-gray-100 text-center">
-                                            {data.recipient}
-                                        </td>
-                                        <td className="border border-gray-100 text-center">
-                                            {data.amount}
-                                        </td>
-                                        <td className="border border-gray-100 text-center">
-                                            {data.baseCurrency}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {props.user.map((data) => {
+                                    return data.transaction.map((trans) => (
+                                        <tr key={trans.id}>
+                                            <td className="border border-gray-100 text-center">
+                                                {trans.sender}
+                                            </td>
+                                            <td className="border border-gray-100 text-center">
+                                                {trans.recipient}
+                                            </td>
+                                            <td className="border border-gray-100 text-center">
+                                                {trans.amount}
+                                            </td>
+                                            <td className="border border-gray-100 text-center">
+                                                {trans.baseCurrency}
+                                            </td>
+                                        </tr>
+                                    ));
+                                })}
                             </tbody>
                         </table>
                     </div>

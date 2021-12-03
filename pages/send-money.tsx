@@ -5,6 +5,8 @@ import Head from "next/head";
 import prisma from "../lib/prisma";
 import { getSession } from "next-auth/client";
 import { GetServerSideProps } from "next";
+import Router from 'next/router'
+
 
 const BASE_URL =
     "http://api.exchangeratesapi.io/v1/latest?access_key=3177c602fb93040e5e58345ae045f2cb";
@@ -18,18 +20,18 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     }
 
     const user = await prisma.user.findMany();
-    return{
-        props: {user }
-    }
+    return {
+        props: { user },
+    };
 };
-
-export default function Transfer(props) {
+const Transfer = (props) => {
     const [session] = useSession();
     const [currencyOptions, setCurrencyOptions] = useState([]);
     const [fromCurrency, setFromCurrency] = useState("");
     const [toCurrency, setToCurrency] = useState("");
     const [exchangeRate, setExchangeRate] = useState(null);
     const [amount, setAmount] = useState(1);
+    const [recipient, setRecipient] = useState("");
     const [amountInFromCurrency, setAmountInFromCurrency] = useState(true);
 
     let toAmount, fromAmount;
@@ -51,6 +53,23 @@ export default function Transfer(props) {
         setAmount(e.target.value);
         setAmountInFromCurrency(false);
     }
+
+    const submitData = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const amount = Math.round(toAmount)
+        try {
+            const body = { recipient, fromCurrency, toCurrency, amount };
+            const res = await fetch("/api/transaction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            await res.json();
+            await Router.push('/dashboard')
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     useEffect(() => {
         if (fromCurrency !== null && toCurrency !== null) {
@@ -82,14 +101,17 @@ export default function Transfer(props) {
                     <div className="flex flex-col items-center">
                         <h1 className="font-medium text-green-400 text-xl">Send money</h1>
                     </div>
-                    <form className="flex flex-col space-y-4">
-                        <select className="w-full border border-gray-300 outline-none placeholder-gray-400 pl-3 pr-4 py-1 rounded-md transition focus:ring-2 focus:ring-green-300">
-                          {
-                              props.user.map((data) => (
-                                <option key={data.id}>{data.name}</option>
-                              ))
-                          }
-                          
+                    <form onSubmit={submitData} className="flex flex-col space-y-4">
+                        <select
+                            onChange={(e) => setRecipient(e.target.value)}
+                            value={recipient}
+                            className="w-full border border-gray-300 outline-none placeholder-gray-400 pl-3 pr-4 py-1 rounded-md transition focus:ring-2 focus:ring-green-300"
+                        >
+                            {props.user.map((data) => (
+                                <option key={data.id} value={data.name}>
+                                    {data.name}
+                                </option>
+                            ))}
                         </select>
                         <div className="flex">
                             <input
@@ -141,4 +163,6 @@ export default function Transfer(props) {
             </div>
         </Wrapper>
     );
-}
+};
+
+export default Transfer;
